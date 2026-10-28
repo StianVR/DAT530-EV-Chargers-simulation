@@ -1,7 +1,6 @@
 function allowed = ev_start_allowed(charger)
 %EV_START_ALLOWED Guard a charger allocation using the FIFO queue head.
-% Rejected guards change nothing. An accepted guard configures the next
-% charging duration but never removes tokens or advances the FIFO sequence.
+% Read-only guard: reservations and duration changes belong in COMMON_POST.
 global PN global_info;
 chargerNames = {'Normal', 'Medium', 'Fast'};
 transitionNames = {PN.global_transitions.name};
@@ -23,15 +22,9 @@ head = allocated + 1;
 if PN.X(waitId) == 0 || head > numel(global_info.vehicleTypes)
     return;
 end
-selected = ev_choose_charger(global_info.vehicleTypes{head}, available);
+selected = ev_choose_supply(global_info.vehicleTypes{head}, available, ...
+    global_info.vehicleMaxKW(head), global_info.energyKWh(head), global_info.chargerPowerKW, ...
+    global_info.currentGridLoad, global_info.GRID_CAPACITY, ...
+    global_info.currentBatteryDischargeKW, global_info.BATTERY_MAX_DISCHARGE_KW, global_info.batteryEnergyKWh);
 allowed = selected == charger;
-if allowed
-    duration = ev_charge_minutes(global_info.energyKWh(head), ...
-        global_info.vehicleMaxKW(head), global_info.chargerPowerKW(charger));
-    doneId = find(strcmp(transitionNames, ['tDone' chargerNames{charger}]));
-    % get_firingtime reads this numeric cache when scheduling a firing.
-    % Update the transition description too so both representations agree.
-    PN.Set_of_Firing_Times(doneId) = duration;
-    PN.global_transitions(doneId).firing_time = duration;
-end
 end

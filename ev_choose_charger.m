@@ -1,7 +1,10 @@
-function selected = ev_choose_charger(vehicleType, available)
+function selected = ev_choose_charger(vehicleType, available, vehicleKW, chargerKW, loadKW, capacityKW)
 %EV_CHOOSE_CHARGER Select the first available charger in preference order.
 % Charger indices: 1=Normal, 2=Medium, 3=Fast. Zero means keep waiting.
-% All three are compatible for this milestone; kW does not set duration.
+% Optional grid arguments keep availability-only callers working.
+if nargin == 2
+    vehicleKW = inf; chargerKW = [22 50 150]; loadKW = 0; capacityKW = inf;
+end
 switch vehicleType
     case 'A'
         preference = [1 2 3];
@@ -14,7 +17,7 @@ switch vehicleType
 end
 selected = 0;
 for charger = preference
-    if available(charger)
+    if available(charger) && loadKW + min(vehicleKW, chargerKW(charger)) <= capacityKW + 1e-9
         selected = charger;
         return;
     end

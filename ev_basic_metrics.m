@@ -56,9 +56,22 @@ metrics.vehicles.ChargerRatedKW = chargerPowerKW(sessions(:, 4));
 metrics.vehicles.EffectiveChargingKW = effectiveKW;
 metrics.vehicles.CalculatedChargingMinutes = calculatedMinutes;
 % Preserve ChargingDuration as the measured value from the event log.
-% A completion can fall on the next simulation tick.
-assert(all(abs(metrics.vehicles.ChargingDuration - calculatedMinutes) ...
-    <= 2 * sim.delta_T + 1e-8), 'Measured charging duration differs from calculation.');
+% Completion is rounded up to a simulation tick; allow one tick plus
+% a tiny floating-point tolerance, but reject early completions.
+durationError = metrics.vehicles.ChargingDuration - calculatedMinutes;
+metrics.durationToleranceMinutes = sim.delta_T;
+metrics.vehicles.DurationErrorMinutes = durationError;
+metrics.vehicles.DurationCheckPassed = durationError >= -1e-8 ...
+    & durationError <= sim.delta_T + 1e-8;
+assert(all(metrics.vehicles.DurationCheckPassed), ...
+    'Measured charging duration differs from calculation by more than one time step.');
+% Put vehicle metadata and the two duration values together for comparison.
+metrics.vehicles = metrics.vehicles(:, {'Vehicle', 'VehicleType', ...
+    'EnergyRequestedKWh', 'ArrivalTime', 'Charger', 'MaxChargingKW', ...
+    'ChargerRatedKW', 'EffectiveChargingKW', 'ChargingStart', ...
+    'CalculatedChargingMinutes', 'ChargingDuration', 'DurationErrorMinutes', ...
+    'DurationCheckPassed', 'WaitingTime', 'QueueWait', 'CompletionTime'});
+metrics.vehicles.AllocationStart = sessions(:, 1);
 
 % Actual pWait tokens exclude vehicles already reserved for allocation.
 waitId = find(strcmp(placeNames, 'pWait'));
@@ -81,8 +94,8 @@ metrics.maxConcurrentCharging = max(cumsum(changes(:, 2)));
 
 % Check that all vehicles finished and all three resource tokens returned.
 expectedFinal = zeros(1, Ps);
-finalNames = {'pArrivalReady', 'pAvailNormal', 'pAvailMedium', 'pAvailFast', 'pDone'};
-finalCounts = [1 1 1 1 6];
+finalNames = {'pArrivalReady', 'pAvailNormal', 'pAvailMedium', 'pAvailFast', 'pDone', 'pDispatch'};
+finalCounts = [1 1 1 1 6 1];
 for k = 1:numel(finalNames)
     expectedFinal(strcmp(placeNames, finalNames{k})) = finalCounts(k);
 end
