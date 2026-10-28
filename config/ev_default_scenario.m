@@ -17,6 +17,7 @@ scenario.vehicle_types = {'A';'B';'C';'A';'B';'C'};
 scenario.vehicle_max_power_kW = [22;50;150;22;50;150];
 scenario.vehicle_energy_kWh = [10;20;40;20;30;50];
 scenario.verbose = false;
+scenario.retain_debug = true;
 scenario.workload_mode = 'deterministic';
 scenario.random_seed = 42;
 scenario.arrival_horizon_minutes = 480;

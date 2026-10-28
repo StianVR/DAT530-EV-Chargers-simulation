@@ -101,4 +101,8 @@ result.mean_generated_energy_kWh = mean(workload.EnergyRequiredKWh);
 result.workload = workload;
 result.vehicles.ScheduledArrivalMinutes = workload.ArrivalTimeMinutes;
 result.metrics.vehicles = result.vehicles;
+if ~scenario.retain_debug
+    result.sim = [];
+    result.transcript = '';
+end
 end

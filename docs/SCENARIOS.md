@@ -1,6 +1,8 @@
 # Running deterministic EV experiments
 
-Put this project and the installed GPenSIM toolbox on the MATLAB path.
+From the project root, run `setup_ev_project` to add the code folders to the
+MATLAB path. Keep the installed GPenSIM toolbox on the path as before.
+Setup does not run any simulation.
 
 ```matlab
 [comparison, results] = compare_ev_scenarios();
@@ -112,3 +114,58 @@ logic, charging, grid and battery behavior remain the same in both modes.
 Tests: `test_ev_workload` checks demand generation independently;
 `compare_ev_scenarios` retains deterministic regressions;
 `run_ev_stochastic_example` checks completion and final power release.
+
+## Paired battery Monte Carlo experiment
+
+```matlab
+experiment = run_battery_monte_carlo(1:5);   % Development validation
+% Later, when ready for a larger experiment:
+% experiment = run_battery_monte_carlo(1:30);
+```
+
+Execution is serial because GPenSIM callbacks share global state. For each
+seed the function generates exactly one workload, then passes that same table
+to battery-off and battery-on scenarios. All other configuration fields are
+identical. Each returned workload is checked against the original. This pairing
+separates the battery comparison from differences in randomly sampled demand.
+
+`experiment.runs` contains one row per seed/scenario. `paired_differences`
+contains Battery minus NoBattery per seed. Negative differences improve waits,
+queue length and completion time; positive differences improve throughput.
+`percent_changes` divides each difference by the no-battery value and multiplies
+by 100. A zero baseline yields NaN (undefined), not infinity or a fabricated zero.
+
+P95 uses the toolbox-free `ev_percentile` helper: sort n observations, locate
+rank `1 + (n-1)*p/100`, and interpolate between adjacent ranks (type-7 quantile).
+This definition can differ from MATLAB percentile implementations using other
+rank conventions. Empty workloads use zero waiting metrics.
+
+`scenario_summary` reports mean, sample standard deviation, median, P25 and P75
+for every numeric run metric. These summaries weight each run equally, not each
+vehicle. `paired_summary` reports mean, sample standard deviation and median of
+the matched differences. Its approximate normal 95% interval is:
+
+```text
+mean(d) +/- 1.96 * std(d) / sqrt(number of pairs)
+```
+
+These intervals are exploratory for five pairs; approximately 30 or more pairs
+are intended for the later analysis. With only one pair CI endpoints are NaN.
+They are not exact small-sample intervals or simultaneous intervals across all
+metrics. `improvements` counts strict improvements; ties do not count.
+
+Files are written into `results/battery_monte_carlo/` by default. Supply a second argument
+to choose a separate output folder, e.g. `run_battery_monte_carlo(1:30,'mc_30')`.
+Exports include the runs, paired differences, percent changes, scenario summary,
+paired summary, improvement counts, and a complete experiment MAT file. A checkpoint
+is saved after every scenario and includes completed rows and generated workloads;
+the function does not automatically resume an existing checkpoint. Use a different
+folder to preserve results from an earlier batch.
+
+Batch mode is quiet and sets `retain_debug=false`: raw `sim` output and captured
+transcripts are omitted from returned runs. The experiment retains summary rows
+and workload tables, not ten/thirty/sixty raw simulator histories. GPenSIM still
+builds its internal log for statistics; its time stepping is unchanged.
+
+`test_ev_monte_carlo` checks percentile interpolation, pairing, summary statistics,
+confidence intervals, and zero-baseline handling without running the simulator.
