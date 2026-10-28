@@ -37,8 +37,8 @@ end
 % Match allocations to arrivals in the same order for reporting.
 sessions = sortrows(sessions, 1);
 n = numel(arrivalTime);
-assert(n == 6 && size(sessions, 1) == n, ...
-    'Expected exactly six arrivals and six completed charging sessions.');
+assert(n == numel(vehicleTypes) && size(sessions, 1) == n, ...
+    'Expected every configured vehicle to arrive and complete charging.');
 queueWait = sessions(:, 1) - arrivalTime;
 waitingTime = sessions(:, 2) - arrivalTime;
 assert(all(queueWait >= -1e-9), 'A session precedes its assigned arrival.');
@@ -95,7 +95,9 @@ metrics.maxConcurrentCharging = max(cumsum(changes(:, 2)));
 % Check that all vehicles finished and all three resource tokens returned.
 expectedFinal = zeros(1, Ps);
 finalNames = {'pArrivalReady', 'pAvailNormal', 'pAvailMedium', 'pAvailFast', 'pDone', 'pDispatch'};
-finalCounts = [1 1 1 1 6 1];
+initial = sim.LOG(1, 1:Ps);
+finalCounts = [1 initial(strcmp(placeNames,'pAvailNormal')) ...
+    initial(strcmp(placeNames,'pAvailMedium')) initial(strcmp(placeNames,'pAvailFast')) n 1];
 for k = 1:numel(finalNames)
     expectedFinal(strcmp(placeNames, finalNames{k})) = finalCounts(k);
 end
