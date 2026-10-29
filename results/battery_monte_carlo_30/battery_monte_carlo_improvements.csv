@@ -1,0 +1,7 @@
+Metric,ImprovedPairs,TotalPairs
+mean_wait_minutes,25,30
+p95_wait_minutes,24,30
+max_queue_length,17,30
+throughput_vehicles_per_hour,19,30
+last_vehicle_completion_time,19,30
+total_grid_wait_minutes,30,30
