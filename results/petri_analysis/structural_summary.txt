@@ -1,0 +1,43 @@
+                        NumberOfPlaces: 11
+                   NumberOfTransitions: 8
+                          NumberOfArcs: 30
+                     StructuralPNClass: "Ordinary P/T net with self-loops"
+                  UsesTimedTransitions: 1
+                 UsesGuardsOrCallbacks: 1
+                               Bounded: 1
+                                  Safe: 0
+                          StrictlyLive: 0
+         IntendedTerminalMarkingExists: 1
+               UnintendedDeadlockFound: 0
+                   NumberOfPInvariants: 6
+               InvariantSpaceDimension: 6
+                ReachabilityStateCount: 146
+                  ReachabilityComplete: 1
+                    CoverabilityStatus: "Exact finite reachability set; coverable iff dominated by a listed marking; no omega needed"
+    AllStatesCanReachVehicleCompletion: 1
+                StructuralDeadMarkings: 0
+                        AnalysisMethod: "GPenSIM pinvariant; retree independently agrees with complete matrix BFS"
+
+
+Scope: six-vehicle deterministic initial marking; untimed atomic P/T firings, guards ignored.
+pToArrive + pWait + pChargeNormal + pChargeMedium + pChargeFast + pDone = N.
+Each pAvailTYPE + pChargeTYPE equals its initial charger count; pArrivalReady and pDispatch each remain 1.
+These nonnegative conservation laws bound every place for any fixed finite N, not uniformly across arbitrary workload sizes.
+pDone can reach N=6, so bounded does not mean 1-safe.
+Vehicle completion marking has all N vehicles in pDone, empty pending/waiting/charging places and all resources returned.
+tRecharge remains enabled structurally at completion (and earlier): the full unguarded net has no dead marking.
+Removing only tRecharge for the deadlock diagnostic makes vehicle completion an intended dead marking.
+Strict liveness is false: after completion tArrival and all charging transitions can never fire again.
+Existence of a completion path is not guaranteed progress for all schedules: the unguarded recharge self-loop can repeat forever.
+The real tRecharge_pre guard permits recharge only after EV completion and only if energy is missing; COMMON_POST then stops.
+FIFO identity, types, energy, preference, grid/battery reservations, kWh, timers and STOP_SIMULATION are external MATLAB state.
+Structural absence of unintended vehicle deadlocks does NOT prove deadlock freedom of the guarded implementation.
+Invariants refer to atomic markings. During GPenSIM timed firing, tokens in flight must be included; PN.X alone may temporarily omit them.
+Cutoff results are partial: NaN means not established, and observed maxima are not upper bounds unless exploration is complete.
+Initial marking names/values mirror src/ev_simulate_scenario.m; structural arcs and matrices are read directly from ev_basic_pdf().
+Invariant 1: 1*pArrivalReady = 1
+Invariant 2: 1*pDispatch = 1
+Invariant 3: 1*pAvailNormal + 1*pChargeNormal = 1
+Invariant 4: 1*pAvailMedium + 1*pChargeMedium = 1
+Invariant 5: 1*pAvailFast + 1*pChargeFast = 1
+Invariant 6: 1*pToArrive + 1*pWait + 1*pChargeNormal + 1*pChargeMedium + 1*pChargeFast + 1*pDone = 6

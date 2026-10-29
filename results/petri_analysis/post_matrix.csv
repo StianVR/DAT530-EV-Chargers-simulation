@@ -1,0 +1,12 @@
+Place,tArrival,tRecharge,tStartNormal,tDoneNormal,tStartMedium,tDoneMedium,tStartFast,tDoneFast
+pToArrive,0,0,0,0,0,0,0,0
+pArrivalReady,1,0,0,0,0,0,0,0
+pWait,1,0,0,0,0,0,0,0
+pDispatch,0,1,1,0,1,0,1,0
+pAvailNormal,0,0,0,1,0,0,0,0
+pAvailMedium,0,0,0,0,0,1,0,0
+pAvailFast,0,0,0,0,0,0,0,1
+pChargeNormal,0,0,1,0,0,0,0,0
+pChargeMedium,0,0,0,0,1,0,0,0
+pChargeFast,0,0,0,0,0,0,1,0
+pDone,0,0,0,1,0,1,0,1

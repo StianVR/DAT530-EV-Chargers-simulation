@@ -1,0 +1,12 @@
+Place,InitialTokens,VehicleTerminalTokens,InvariantBound,ObservedReachabilityMaximum
+pToArrive,6,0,6,6
+pArrivalReady,1,1,1,1
+pWait,0,0,6,6
+pDispatch,1,1,1,1
+pAvailNormal,1,1,1,1
+pAvailMedium,1,1,1,1
+pAvailFast,1,1,1,1
+pChargeNormal,0,0,1,1
+pChargeMedium,0,0,1,1
+pChargeFast,0,0,1,1
+pDone,0,6,6,6

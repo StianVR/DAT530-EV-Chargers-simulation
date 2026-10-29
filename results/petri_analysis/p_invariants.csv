@@ -1,0 +1,12 @@
+Place,Invariant1,Invariant2,Invariant3,Invariant4,Invariant5,Invariant6
+pToArrive,0,0,0,0,0,1
+pArrivalReady,1,0,0,0,0,0
+pWait,0,0,0,0,0,1
+pDispatch,0,1,0,0,0,0
+pAvailNormal,0,0,1,0,0,0
+pAvailMedium,0,0,0,1,0,0
+pAvailFast,0,0,0,0,1,0
+pChargeNormal,0,0,1,0,0,1
+pChargeMedium,0,0,0,1,0,1
+pChargeFast,0,0,0,0,1,1
+pDone,0,0,0,0,0,1

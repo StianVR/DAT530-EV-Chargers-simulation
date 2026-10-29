@@ -169,3 +169,106 @@ builds its internal log for statistics; its time stepping is unchanged.
 
 `test_ev_monte_carlo` checks percentile interpolation, pairing, summary statistics,
 confidence intervals, and zero-baseline handling without running the simulator.
+
+## Grid-capacity sensitivity (user-launched simulations)
+
+Start with one seed: six full simulations, one workload shared by all six.
+
+```matlab
+setup_ev_project
+experiment1 = run_grid_sensitivity(1);
+% After inspecting the one-seed results:
+experiment5 = run_grid_sensitivity(1:5);
+```
+
+The only station factors changed are grid capacity (150, 200, 250 kW) and
+battery enabled/disabled. Battery-on always uses the same 100 kWh / 100 kW
+discharge / 50 kW recharge design. Traffic and allocation rules are unchanged.
+Runs are serial and quiet. An optional second argument selects an output folder.
+
+Defaults are `results/grid_sensitivity_1/` and `results/grid_sensitivity_5/`.
+These use `grid_sensitivity_*` filenames and do not overwrite battery Monte Carlo
+exports. A checkpoint and runs CSV are saved after each full simulation. There
+is no automatic resume; choose a new folder to preserve an older sensitivity run.
+
+`runs` has one row per Seed x GridCapacityKW x BatteryEnabled (6 or 30 rows).
+`summary` reports mean, sample standard deviation, median, P25 and P75 for each
+metric at each grid/battery configuration. `paired_differences` matches battery
+on and off by seed **within the same grid level**. `paired_effects` summarizes
+those Battery-minus-NoBattery differences separately for each grid capacity.
+`improvements` counts strict improvements (ties excluded). `report` and
+`effect_report` are the compact report tables. All are exported to CSV.
+
+Negative deltas improve waiting, queue length and completion time. Positive
+throughput deltas improve throughput. No monotonic trend is assumed or forced.
+Approximate normal confidence intervals are exploratory for five seeds; with
+one seed their endpoints are NaN because variability cannot be estimated.
+
+The runner checks identical workload tables, completion, final zero power,
+grid limits, discharge limits and matching counts. Existing result assertions
+check charger return. At 200 kW it also reads matching seed rows from
+`results/battery_monte_carlo/battery_monte_carlo_runs.csv` and checks agreement
+within the time-step tolerance. `baseline_checks` records the matched rows;
+zero rows means no saved matching baseline was available, not a validated match.
+It never edits that baseline file. A discrepancy stops the experiment rather
+than changing the physical model to obtain the expected result.
+
+`test_ev_grid_sensitivity` uses synthetic data and the supply helper only; it
+does not execute a full simulation. The one-seed and five-seed experiments are
+for you to launch explicitly.
+
+## Demand sensitivity (user-launched simulations)
+
+```matlab
+setup_ev_project
+experiment1 = run_demand_sensitivity(1);   % Six full simulations
+% Later, after inspecting the one-seed validation:
+experiment5 = run_demand_sensitivity(1:5); % Thirty full simulations
+```
+
+This separate experiment changes only the mean exponential interarrival time
+(15, 10, 7.5 minutes) and battery enabled/disabled. Grid capacity stays at
+200 kW, with the same chargers, battery design, vehicle probabilities and
+energy ranges. The arrival horizon remains 480 minutes; service and recovery
+can finish later. Counts are generated, not prescribed.
+
+For every seed, demand is generated once **per demand level** and reused for
+the OFF/ON pair. This means three workload tables and six runs per seed.
+Workloads differ between demand levels, while the two battery configurations
+at a given level receive identical arrivals, types and energy requests.
+Reusing seed identifiers does not imply independent random streams across
+demand levels. The paired battery effect is calculated within each level.
+
+`experiment.workloads{seedIndex,levelIndex}` stores the exact traffic, with
+columns ordered as `experiment.mean_interarrival_minutes = [15 10 7.5]`.
+`runs` contains one row per Seed x MeanInterarrivalMinutes x BatteryEnabled.
+Counts need only match within each pair, not across demand levels.
+
+`summary` provides mean, sample standard deviation, median, P25 and P75 per
+configuration, including vehicle count and battery energy use. All runs are
+weighted equally. `paired_differences` and `paired_effects` contain Battery minus
+NoBattery within each seed/demand combination and their per-level summaries.
+`improvements` counts strict improvements; ties are excluded.
+
+`report` includes vehicle count, waits, queue length, throughput, direct supply
+waiting and battery use. `effect_report` shows the paired deltas alongside mean
+battery energy use. `battery_usage` adds assisted-session counts for comparing
+battery use with benefit. Higher throughput alongside longer waits is possible;
+throughput alone does not measure service quality.
+
+Exports and per-scenario checkpoints are saved separately to
+`results/demand_sensitivity_1/` or `results/demand_sensitivity_5/`, using
+`demand_sensitivity_*` filenames. An optional second argument selects another
+folder. Existing Monte Carlo and grid-sensitivity results are never written.
+
+At 10-minute demand the runner reads matched seed rows from the existing
+battery Monte Carlo CSV and checks agreement within the configured time-step
+tolerance. `baseline_checks` records matches. If the CSV or seed is absent,
+there is no comparison for that seed; zero matched rows is not a passed baseline
+validation. The remaining run checks enforce identical paired workloads,
+completion, power bounds and final zero reservations.
+
+`test_ev_demand_sensitivity` generates workloads and tests synthetic result
+tables only. It does not run full simulations. Full one-seed validation is left
+for you to launch. One-pair confidence intervals are NaN; five-pair approximate
+normal intervals are exploratory.

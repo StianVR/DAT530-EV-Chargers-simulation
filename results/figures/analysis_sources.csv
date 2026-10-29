@@ -1,0 +1,4 @@
+Experiment,SourceCSV,Status,Rows,Seeds
+battery,C:\Users\stian\Universitet\Year6\DAT530\EV_Charging\results\battery_monte_carlo\battery_monte_carlo_runs.csv,loaded,10,5
+grid,C:\Users\stian\Universitet\Year6\DAT530\EV_Charging\results\grid_sensitivity_1\grid_sensitivity_runs.csv,loaded,6,1
+demand,C:\Users\stian\Universitet\Year6\DAT530\EV_Charging\results\demand_sensitivity_1\demand_sensitivity_runs.csv,loaded,6,1

@@ -1,0 +1,2 @@
+Exact finite reachability set; coverable iff dominated by a listed marking; no omega needed
+Scope: pure token markings only. Complete=true; states=146
